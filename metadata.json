@@ -1,0 +1,6 @@
+{
+  "name": "智能六爻四面体 (Hexagram Tetrahedron)",
+  "description": "一个基于粗野主义风格的数字占卜原型，结合硬件仿真与 AI 解卦。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

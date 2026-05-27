@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --color-brand-bg: #0B121B;
+}
+
+@layer base {
+  body {
+    @apply bg-[var(--color-brand-bg)] text-slate-100 font-mono uppercase selection:bg-white selection:text-black;
+  }
+}
+
+.brutalist-border {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+}
+
+.rounded-button {
+  @apply px-8 py-3 rounded-full border border-slate-700 transition-all active:scale-95;
+}
+
+.glow-text {
+  text-shadow: 0 0 12px rgba(255,255,255,0.4);
+}
+
+.glow-box {
+  box-shadow: 0 0 20px rgba(255,255,255,0.1);
+}
+
+/* 卦象光点：模糊光晕 */
+.hex-dot-glow {
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 0 8px 3px rgba(255, 255, 255, 0.95),
+    0 0 22px 10px rgba(255, 255, 255, 0.5),
+    0 0 48px 20px rgba(180, 210, 255, 0.28),
+    0 0 72px 32px rgba(120, 160, 255, 0.12);
+  filter: blur(0.6px);
+}
