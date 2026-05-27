@@ -12,6 +12,8 @@ import { HexagramLogo } from './components/HexagramLogo';
 import { QuestionGuide } from './components/QuestionGuide';
 import { ResultCard } from './components/ResultCard';
 import { InterpretationPanel } from './components/InterpretationPanel';
+import { streamDeepSeekChat } from './lib/deepseekClient.ts';
+import { buildInterpretMessages } from './lib/interpretPromptClient.ts';
 
 // --- Types ---
 type AppState = 'CONNECTION' | 'CALM' | 'GUIDE' | 'INPUT' | 'TOSSING' | 'INTERPRETING' | 'RESULT';
@@ -199,47 +201,15 @@ export default function App() {
     setAppState('RESULT');
 
     try {
-      const response = await fetch('/api/interpret', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, hexagram: hexagram.results }),
-      });
-
-      const contentType = response.headers.get('content-type') ?? '';
-
-      if (!response.ok) {
-        let message = `Request failed (${response.status})`;
-        if (contentType.includes('application/json')) {
-          const errData = await response.json().catch(() => ({}));
-          if (typeof errData.error === 'string') message = errData.error;
-        } else {
-          const text = await response.text().catch(() => '');
-          if (text.includes('<!DOCTYPE') || text.includes('<html')) {
-            message = 'API not found. Run npm run dev (port 3000).';
-          } else if (text) {
-            message = text.slice(0, 120);
-          }
-        }
-        throw new Error(message);
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('No response stream');
-
-      const decoder = new TextDecoder();
+      const { messages } = buildInterpretMessages(question.trim(), hexagram.results);
       let fullText = '';
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
+      await streamDeepSeekChat(messages, (chunk) => {
         fullText += chunk;
         if (chunk) {
           setInterpretation(fullText);
         }
-      }
-
-      fullText += decoder.decode();
+      });
 
       if (!fullText.trim()) {
         throw new Error('Empty response from DeepSeek. Check API key or balance.');
@@ -252,7 +222,11 @@ export default function App() {
         err instanceof Error ? err.message : 'Interpretation failed.';
       console.error('[interpret]', err);
       setIsInterpreting(false);
-      setError(message);
+      if (message.includes('VITE_DEEPSEEK_API_KEY')) {
+        setError('VITE_DEEPSEEK_API_KEY 未配置。请在 Vercel 和本地环境变量中添加它。');
+      } else {
+        setError(message);
+      }
       setAppState('TOSSING');
     }
   };
